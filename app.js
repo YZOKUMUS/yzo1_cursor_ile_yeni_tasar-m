@@ -5,7 +5,7 @@ class LearningSystem {
         this.userProgress = this.loadProgress();
         this.currentMode = null;
         this.currentQuestion = null;
-        this.sessionStats = { correct: 0, wrong: 0 };
+        this.sessionStats = { correct: 0, wrong: 0, questionCount: 0 };
         this.audioCache = new Map();
         this.currentAudio = null; // Track currently playing audio
         this.isModalOpen = false; // Track if any modal is open
@@ -300,7 +300,8 @@ class LearningSystem {
                         offlineLessons: progress.offlineLessons || [],
                         errorAnalysis: progress.errorAnalysis || {},
                         darkMode: progress.darkMode || false,
-                        notifications: progress.notifications !== undefined ? progress.notifications : true
+                        notifications: progress.notifications !== undefined ? progress.notifications : true,
+                        checkpoints: progress.checkpoints || {} // Checkpoint progress for all modes
                     };
                 }
             } catch (e) {
@@ -336,7 +337,8 @@ class LearningSystem {
             offlineLessons: [],
             errorAnalysis: {},
             darkMode: false,
-            notifications: true
+            notifications: true,
+            checkpoints: {} // Checkpoint progress for all modes
         };
     }
 
@@ -413,6 +415,45 @@ class LearningSystem {
                     e.preventDefault();
                     debouncedBack();
                 }
+            });
+        }
+
+        // Checkpoint modal buttons
+        const continueChapterBtn = document.getElementById('continue-chapter-btn');
+        if (continueChapterBtn) {
+            continueChapterBtn.addEventListener('click', () => {
+                this.hideModal('checkpoint-modal');
+                // Continue with next question
+                this.nextQuestion();
+            });
+        }
+
+        const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
+        if (backToDashboardBtn) {
+            backToDashboardBtn.addEventListener('click', () => {
+                this.hideModal('checkpoint-modal');
+                // Save checkpoint progress
+                if (!this.userProgress.checkpoints) {
+                    this.userProgress.checkpoints = {};
+                }
+                
+                const checkpointModes = ['spaced-repetition', 'interleaved', 'audio-first', 'recognition-recall', 'contextual', 'weak-words'];
+                const isChapter1Checkpoint = this.currentMode === 'chapter' && this.currentChapter && this.currentChapter.id === 1;
+                
+                if (isChapter1Checkpoint) {
+                    // For chapter 1, save in chapters object (backward compatibility)
+                    const progress = this.userProgress.chapters[1] || { completed: 0, total: 0, learnedWords: [] };
+                    progress.lastQuestionCount = this.sessionStats.questionCount;
+                    this.userProgress.chapters[1] = progress;
+                } else if (checkpointModes.includes(this.currentMode)) {
+                    // For other modes, save in checkpoints object
+                    this.userProgress.checkpoints[this.currentMode] = {
+                        lastQuestionCount: this.sessionStats.questionCount
+                    };
+                }
+                
+                this.saveProgress();
+                this.showDashboard();
             });
         }
 
@@ -631,11 +672,11 @@ class LearningSystem {
             });
         });
 
-        // Global keyboard navigation: Escape to close modals
+        // Global keyboard navigation: Escape to close modals (except checkpoint modal)
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isModalOpen) {
                 const openModal = document.querySelector('.modal.show');
-                if (openModal) {
+                if (openModal && openModal.id !== 'checkpoint-modal') {
                     this.hideModal(openModal.id);
                 }
             }
@@ -812,7 +853,12 @@ class LearningSystem {
         }
 
         this.currentMode = mode;
-        this.sessionStats = { correct: 0, wrong: 0 };
+        
+        // Initialize session stats - restore questionCount from checkpoint if exists
+        const savedQuestionCount = (this.userProgress.checkpoints && this.userProgress.checkpoints[mode]) 
+            ? this.userProgress.checkpoints[mode].lastQuestionCount || 0
+            : 0;
+        this.sessionStats = { correct: 0, wrong: 0, questionCount: savedQuestionCount };
         
         const dashboardView = document.getElementById('dashboard-view');
         const learningView = document.getElementById('learning-view');
@@ -1529,6 +1575,46 @@ class LearningSystem {
             }
         }
         
+        // Checkpoint system: Increment question count and check every 10 questions
+        // Applies to: chapter (only chapter 1), spaced-repetition, interleaved, audio-first, recognition-recall, contextual, weak-words
+        const checkpointModes = ['spaced-repetition', 'interleaved', 'audio-first', 'recognition-recall', 'contextual', 'weak-words'];
+        const isChapter1Checkpoint = this.currentMode === 'chapter' && this.currentChapter && this.currentChapter.id === 1;
+        const isCheckpointMode = checkpointModes.includes(this.currentMode) || isChapter1Checkpoint;
+        
+        if (isCheckpointMode) {
+            // Increment question count after answering
+            this.sessionStats.questionCount = (this.sessionStats.questionCount || 0) + 1;
+            
+            // Check if we've reached a checkpoint (every 10 questions)
+            if (this.sessionStats.questionCount > 0 && this.sessionStats.questionCount % 10 === 0) {
+                // Save checkpoint progress
+                if (!this.userProgress.checkpoints) {
+                    this.userProgress.checkpoints = {};
+                }
+                
+                if (isChapter1Checkpoint) {
+                    // For chapter 1, save in chapters object (backward compatibility)
+                    const progress = this.userProgress.chapters[1] || { completed: 0, total: 0, learnedWords: [] };
+                    progress.lastQuestionCount = this.sessionStats.questionCount;
+                    this.userProgress.chapters[1] = progress;
+                } else {
+                    // For other modes, save in checkpoints object
+                    this.userProgress.checkpoints[this.currentMode] = {
+                        lastQuestionCount: this.sessionStats.questionCount
+                    };
+                }
+                
+                this.saveProgress();
+                
+                // Show checkpoint modal after a delay
+                setTimeout(() => {
+                    this.showModal('checkpoint-modal');
+                }, 1500);
+                // Don't show next button - user will choose to continue or go back
+                return;
+            }
+        }
+        
         // Show next button (except for test-out which auto-advances)
         if (this.currentMode !== 'test-out') {
             const nextBtn = document.getElementById('next-btn');
@@ -1577,15 +1663,35 @@ class LearningSystem {
 
     showFeedback(isCorrect) {
         const feedbackArea = document.getElementById('feedback-area');
-        const message = isCorrect 
-            ? '✅ Doğru! Harika iş! 🎉' 
-            : `❌ Yanlış. Doğru cevap: "${this.currentQuestion.turkish_mean}"`;
+        let message;
+        
+        if (isCorrect) {
+            // Profesyonel dil öğrenme siteleri gibi pozitif mesajlar
+            const successMessages = [
+                '🎉 Mükemmel!',
+                '✨ Harika!',
+                '🌟 Süpersin!',
+                '💪 Çok iyi!',
+                '🔥 Muhteşem!',
+                '⭐ Bravo!',
+                '🎯 Doğru!',
+                '💎 Mükemmel iş!'
+            ];
+            message = successMessages[Math.floor(Math.random() * successMessages.length)];
+        } else {
+            message = `❌ Yanlış. Doğru cevap: <strong>"${this.currentQuestion.turkish_mean}"</strong>`;
+        }
         
         feedbackArea.innerHTML = `
             <div class="feedback-message ${isCorrect ? 'correct' : 'wrong'}">
                 ${message}
             </div>
         `;
+        
+        // Haptic feedback
+        if (navigator.vibrate) {
+            navigator.vibrate(isCorrect ? [50, 30, 50] : [100, 50, 100]);
+        }
     }
 
     updateWordProgress(isCorrect) {
@@ -1657,8 +1763,10 @@ class LearningSystem {
     }
 
     // Centralized hearts check - checks if user can play
+    // GEÇİCİ OLARAK DEVRE DIŞI: Testler bitince tekrar aktif edilecek
     canPlay() {
-        return this.userProgress.isPremium || (this.userProgress.hearts || 0) > 0;
+        // return this.userProgress.isPremium || (this.userProgress.hearts || 0) > 0;
+        return true; // Geçici olarak her zaman oynayabilir
     }
 
     // Centralized hearts validation - ensures hearts are within bounds
@@ -1726,12 +1834,13 @@ class LearningSystem {
         this.userProgress.level = newLevel;
         
         if (newLevel > oldLevel) {
-            this.showToast(`🎉 Seviye Atladınız! Seviye ${newLevel}`, 'success');
+            // Profesyonel dil öğrenme siteleri gibi level up kutlaması
+            this.showLevelUpCelebration(newLevel);
             this.checkBadges();
             const levelEl = document.getElementById('level');
             if (levelEl) {
                 levelEl.classList.add('level-up-animation');
-                setTimeout(() => levelEl.classList.remove('level-up-animation'), 1500);
+                setTimeout(() => levelEl.classList.remove('level-up-animation'), 2000);
             }
         }
         
@@ -1751,7 +1860,8 @@ class LearningSystem {
         this.checkDailyChest();
         
         if (this.userProgress.dailyProgress >= this.userProgress.dailyGoal) {
-            this.showToast('🎯 Günlük hedefinize ulaştınız!', 'success');
+            // Profesyonel dil öğrenme siteleri gibi günlük hedef kutlaması
+            this.showDailyGoalCelebration();
             this.addXP(50);
             this.checkBadges();
             // Check for gift chest after completing daily goal
@@ -1814,7 +1924,16 @@ class LearningSystem {
         
         if (lastStudyDate === yesterdayStr) {
             // Continue streak
-            this.userProgress.streak = (this.userProgress.streak || 0) + 1;
+            const oldStreak = this.userProgress.streak || 0;
+            this.userProgress.streak = oldStreak + 1;
+            
+            // Profesyonel dil öğrenme siteleri gibi streak kutlaması (7, 14, 30, 100 gün)
+            const newStreak = this.userProgress.streak;
+            if (newStreak > oldStreak && (newStreak === 7 || newStreak === 14 || newStreak === 30 || newStreak === 100 || newStreak % 30 === 0)) {
+                setTimeout(() => {
+                    this.showStreakCelebration(newStreak);
+                }, 1000);
+            }
         } else {
             // Reset streak (missed a day or more)
             this.userProgress.streak = 1;
@@ -2036,6 +2155,11 @@ class LearningSystem {
 
     // Hearts System
     loseHeart() {
+        // GEÇİCİ OLARAK DEVRE DIŞI: Testler bitince tekrar aktif edilecek
+        // Can kaybetme özelliği testler sırasında kapatıldı
+        return;
+        
+        /* ORİJİNAL KOD - TESTLER BİTİNCE GERİ AÇILACAK
         if (this.userProgress.isPremium) return;
         
         this.userProgress.hearts = Math.max(0, (this.userProgress.hearts || 0) - 1);
@@ -2049,6 +2173,7 @@ class LearningSystem {
             heartsEl.classList.add('heart-loss-animation');
             setTimeout(() => heartsEl.classList.remove('heart-loss-animation'), 500);
         }
+        */
     }
 
     initHeartsRefillTimer() {
@@ -2492,7 +2617,12 @@ class LearningSystem {
         
         this.currentChapter = chapter;
         this.currentMode = 'chapter';
-        this.sessionStats = { correct: 0, wrong: 0 };
+        
+        // Initialize session stats - restore questionCount for chapter 1 if exists
+        const savedQuestionCount = (chapterId === 1 && this.userProgress.chapters[1] && this.userProgress.chapters[1].lastQuestionCount) 
+            ? this.userProgress.chapters[1].lastQuestionCount 
+            : 0;
+        this.sessionStats = { correct: 0, wrong: 0, questionCount: savedQuestionCount };
         
         const dashboardView = document.getElementById('dashboard-view');
         const learningView = document.getElementById('learning-view');
@@ -2703,7 +2833,7 @@ class LearningSystem {
         
         this.currentStory = story;
         this.currentMode = 'story';
-        this.sessionStats = { correct: 0, wrong: 0 };
+        this.sessionStats = { correct: 0, wrong: 0, questionCount: 0 };
         
         // Get story words (filter words that have context)
         const storyWords = this.words
@@ -3008,7 +3138,7 @@ class LearningSystem {
         
         this.currentTest = test;
         this.currentMode = 'test-out';
-        this.sessionStats = { correct: 0, wrong: 0 };
+        this.sessionStats = { correct: 0, wrong: 0, questionCount: 0 };
         
         // Get test words based on level
         let testWords = this.words
@@ -3605,87 +3735,254 @@ class LearningSystem {
     }
 
     animateConfetti() {
-        const colors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
-        for (let i = 0; i < 50; i++) {
+        const colors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#58cc02', '#1cb0f6', '#ffc800'];
+        for (let i = 0; i < 80; i++) {
             setTimeout(() => {
                 const confetti = document.createElement('div');
                 confetti.className = 'confetti';
                 confetti.style.left = Math.random() * 100 + '%';
                 confetti.style.top = '-10px';
                 confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = confetti.style.width;
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
                 confetti.style.animationDelay = Math.random() * 0.5 + 's';
                 document.body.appendChild(confetti);
                 
                 setTimeout(() => confetti.remove(), 3000);
-            }, i * 50);
+            }, i * 30);
         }
+    }
+
+    showLevelUpCelebration(level) {
+        // Profesyonel dil öğrenme siteleri gibi level up ekranı
+        const modal = document.createElement('div');
+        modal.className = 'level-up-modal';
+        modal.innerHTML = `
+            <div class="level-up-content">
+                <div class="level-up-icon">🎉</div>
+                <h2>Seviye ${level}!</h2>
+                <p>Tebrikler! Yeni seviyeye ulaştınız!</p>
+                <div class="level-up-stats">
+                    <div class="level-up-stat">
+                        <span class="stat-icon">⭐</span>
+                        <span>Seviye ${level}</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary level-up-close">Harika!</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Animasyon için
+        setTimeout(() => modal.classList.add('show'), 10);
+        
+        // Confetti animasyonu
+        this.animateConfetti();
+        
+        // Kapatma
+        const closeBtn = modal.querySelector('.level-up-close');
+        const closeModal = () => {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 500);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // Otomatik kapanma
+        setTimeout(closeModal, 4000);
+    }
+
+    showDailyGoalCelebration() {
+        // Günlük hedef tamamlama kutlaması
+        const modal = document.createElement('div');
+        modal.className = 'daily-goal-modal';
+        modal.innerHTML = `
+            <div class="daily-goal-content">
+                <div class="daily-goal-icon">🎯</div>
+                <h2>Günlük Hedef Tamamlandı!</h2>
+                <p>Tebrikler! Bugünkü hedefinize ulaştınız!</p>
+                <div class="daily-goal-reward">
+                    <span class="reward-icon">⭐</span>
+                    <span>+50 XP</span>
+                </div>
+                <button class="btn btn-primary daily-goal-close">Harika!</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        setTimeout(() => modal.classList.add('show'), 10);
+        this.animateConfetti();
+        
+        const closeBtn = modal.querySelector('.daily-goal-close');
+        const closeModal = () => {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 500);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        setTimeout(closeModal, 4000);
     }
 
     // Error Analysis
     updateErrorAnalysis(word) {
-        if (!this.userProgress.errorAnalysis[word.id_number]) {
-            this.userProgress.errorAnalysis[word.id_number] = {
+        if (!word || !word.id_number) {
+            console.warn('updateErrorAnalysis: word or id_number is missing', word);
+            return;
+        }
+        
+        // Ensure errorAnalysis object exists
+        if (!this.userProgress.errorAnalysis) {
+            this.userProgress.errorAnalysis = {};
+        }
+        
+        // Use string key for consistency
+        const wordId = String(word.id_number);
+        
+        if (!this.userProgress.errorAnalysis[wordId]) {
+            this.userProgress.errorAnalysis[wordId] = {
                 count: 0,
                 lastError: null,
                 category: this.categorizeError(word)
             };
         }
         
-        this.userProgress.errorAnalysis[word.id_number].count++;
-        this.userProgress.errorAnalysis[word.id_number].lastError = Date.now();
+        this.userProgress.errorAnalysis[wordId].count++;
+        this.userProgress.errorAnalysis[wordId].lastError = Date.now();
         this.saveProgress();
+        
+        console.log('Error analysis updated for word:', wordId, 'Count:', this.userProgress.errorAnalysis[wordId].count);
     }
 
     categorizeError(word) {
+        if (!word) return 'Bilinmeyen';
+        
         // Simple categorization based on difficulty
-        if (word.word_diffuculty <= 7) return 'Kolay';
-        if (word.word_diffuculty <= 11) return 'Orta';
+        const difficulty = word.word_diffuculty || word.difficulty || 0;
+        if (difficulty <= 7) return 'Kolay';
+        if (difficulty <= 11) return 'Orta';
         return 'Zor';
     }
 
     showErrorAnalysis() {
+        console.log('showErrorAnalysis called');
         const container = document.getElementById('error-analysis-content');
-        if (!container) return;
+        if (!container) {
+            console.error('Error analysis container not found');
+            alert('Hata: Hata analizi konteyneri bulunamadı. Sayfayı yenileyin.');
+            return;
+        }
         
-        const errors = Object.entries(this.userProgress.errorAnalysis || {})
-            .map(([id, data]) => ({
-                word: this.words.find(w => w.id_number === parseInt(id)),
-                ...data
-            }))
-            .filter(e => e.word)
+        // Debug: Check if errorAnalysis exists
+        console.log('Error analysis data:', this.userProgress.errorAnalysis);
+        console.log('Total errors:', Object.keys(this.userProgress.errorAnalysis || {}).length);
+        
+        // Ensure errorAnalysis exists
+        if (!this.userProgress.errorAnalysis) {
+            this.userProgress.errorAnalysis = {};
+        }
+        
+        if (Object.keys(this.userProgress.errorAnalysis).length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                    <p style="color: var(--text-secondary); font-size: 16px; margin-bottom: 8px;">
+                        Henüz hata analizi verisi yok.
+                    </p>
+                    <p style="color: var(--text-secondary); font-size: 14px;">
+                        Soruları cevaplamaya başladığınızda yanlış cevapladığınız kelimeler burada görünecek.
+                    </p>
+                </div>
+            `;
+            this.showModal('error-analysis-modal');
+            console.log('Showing empty error analysis modal');
+            return;
+        }
+        
+        // Try both string and number matching for id_number
+        const errors = Object.entries(this.userProgress.errorAnalysis)
+            .map(([id, data]) => {
+                // Try to find word by matching id_number as both string and number
+                const word = this.words.find(w => 
+                    String(w.id_number) === String(id) || 
+                    w.id_number === parseInt(id) ||
+                    String(w.id_number) === id
+                );
+                return {
+                    word: word,
+                    id: id,
+                    ...data
+                };
+            })
+            .filter(e => e.word) // Only keep entries where word was found
             .sort((a, b) => b.count - a.count)
             .slice(0, 10);
         
+        console.log('Found errors:', errors.length, errors);
+        
         if (errors.length === 0) {
-            container.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">Henüz hata analizi verisi yok. Soruları cevaplamaya başladığınızda burada görünecek.</p>';
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                    <p style="color: var(--text-secondary); font-size: 16px; margin-bottom: 8px;">
+                        Hata analizi verisi bulundu ancak kelimeler eşleşmedi.
+                    </p>
+                    <p style="color: var(--text-secondary); font-size: 14px;">
+                        Toplam hata kaydı: ${Object.keys(this.userProgress.errorAnalysis).length}
+                    </p>
+                </div>
+            `;
             this.showModal('error-analysis-modal');
+            console.log('Showing error analysis modal with no matched words');
             return;
         }
         
         const categories = {};
         errors.forEach(error => {
-            if (!categories[error.category]) {
-                categories[error.category] = [];
+            const category = error.category || 'Bilinmeyen';
+            if (!categories[category]) {
+                categories[category] = [];
             }
-            categories[error.category].push(error);
+            categories[category].push(error);
         });
         
-        container.innerHTML = Object.entries(categories).map(([category, words]) => `
-            <div class="error-category">
-                <div class="error-category-title">${category} Seviye (${words.length} kelime)</div>
-                <div class="error-words-list">
-                    ${words.map(w => `
-                        <span class="error-word-tag">${w.word.arabic_word} (${w.count}x)</span>
-                    `).join('')}
-                </div>
+        container.innerHTML = `
+            <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-color); border-radius: 8px;">
+                <p style="margin: 0; color: var(--text-primary); font-weight: 600;">
+                    📊 Toplam ${errors.length} kelimede hata yaptınız
+                </p>
             </div>
-        `).join('');
+            ${Object.entries(categories).map(([category, words]) => `
+                <div class="error-category" style="margin-bottom: 24px;">
+                    <div class="error-category-title" style="font-size: 18px; font-weight: 700; color: var(--primary-color); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border-color);">
+                        ${category} Seviye (${words.length} kelime)
+                    </div>
+                    <div class="error-words-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${words.map(w => `
+                            <span class="error-word-tag" style="display: inline-block; padding: 8px 16px; background: var(--bg-color); border: 2px solid var(--border-color); border-radius: 20px; font-size: 14px; color: var(--text-primary);">
+                                <strong>${w.word.arabic_word}</strong> 
+                                <span style="color: var(--error-color); margin-left: 8px;">(${w.count}x yanlış)</span>
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        `;
         
+        console.log('Showing error analysis modal with', errors.length, 'errors');
         this.showModal('error-analysis-modal');
     }
 
     // Modals with accessibility improvements
     showModal(modalId) {
+        console.log('showModal called with id:', modalId);
         // Store the element that triggered the modal for focus restoration
         this.previousActiveElement = document.activeElement;
         
@@ -3704,6 +4001,7 @@ class LearningSystem {
         
         const modal = document.getElementById(modalId);
         if (modal) {
+            console.log('Modal found, adding show class');
             modal.classList.add('show');
             modal.setAttribute('aria-hidden', 'false');
             
@@ -3721,8 +4019,12 @@ class LearningSystem {
                 // Fallback: focus the modal itself
                 modal.focus();
             }
+            
+            // Force a reflow to ensure the modal is visible
+            modal.offsetHeight;
         } else {
             console.error(`showModal: Modal with id "${modalId}" not found`);
+            alert(`Hata: Modal "${modalId}" bulunamadı. Sayfayı yenileyin.`);
         }
     }
 
@@ -3815,10 +4117,8 @@ class LearningSystem {
             }
         }
         
-        // Hearts refill notification
-        if (this.userProgress.hearts < this.userProgress.maxHearts && !this.userProgress.isPremium) {
-            this.showToast('❤️ Canlarınız yenilendi!', 'success');
-        }
+        // Hearts refill notification is handled by checkHeartsRefill() function
+        // No need to show notification here as it would be misleading
     }
 
     // Offline Support
@@ -4031,11 +4331,12 @@ class LearningSystem {
             offlineLessons: [],
             errorAnalysis: {},
             darkMode: false,
-            notifications: true
+            notifications: true,
+            checkpoints: {} // Checkpoint progress for all modes
         };
         
         // Clear all runtime variables
-        this.sessionStats = { correct: 0, wrong: 0 };
+        this.sessionStats = { correct: 0, wrong: 0, questionCount: 0 };
         this.currentMode = null;
         this.currentQuestion = null;
         this.currentChapter = null;
@@ -4112,7 +4413,7 @@ class LearningSystem {
         }
         
         this.currentMode = 'conversation';
-        this.sessionStats = { correct: 0, wrong: 0 };
+        this.sessionStats = { correct: 0, wrong: 0, questionCount: 0 };
         
         // Get conversation words (words with context)
         const conversationWords = this.words

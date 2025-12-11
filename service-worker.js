@@ -1,19 +1,34 @@
 // Service Worker for PWA Support
 const CACHE_NAME = 'arapca-ogrenme-v1';
 
+// GitHub Pages için base path'i otomatik algıla
+function getBasePath() {
+  // Service worker'ın çalıştığı dizini al
+  const swPath = self.location.pathname;
+  // service-worker.js'den önceki kısmı al
+  const basePath = swPath.substring(0, swPath.lastIndexOf('/') + 1);
+  return basePath || '/';
+}
+
+const basePath = getBasePath();
+
 // Install event - Cache resources
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
-        // Sadece temel dosyaları cache'le, diğerleri runtime'da eklenecek
-        return cache.addAll([
-          './index.html',
-          './styles.css',
-          './app.js',
-          './manifest.json'
-        ].map(url => new Request(url, {cache: 'reload'}))).catch((error) => {
+        console.log('Opened cache, basePath:', basePath);
+        // Base path ile dosyaları cache'le
+        const filesToCache = [
+          basePath,
+          basePath + 'index.html',
+          basePath + 'styles.css',
+          basePath + 'app.js',
+          basePath + 'manifest.json',
+          basePath + 'dinle-bul.png'
+        ].map(url => url.replace(/([^:]\/)\/+/g, '$1')); // Çift slash'ları temizle
+        
+        return cache.addAll(filesToCache.map(url => new Request(url, {cache: 'reload'}))).catch((error) => {
           console.log('Some files failed to cache:', error);
           // Hata olsa bile devam et
           return Promise.resolve();
@@ -47,6 +62,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const requestUrl = new URL(event.request.url);
+  
+  // Sadece aynı origin'den gelen istekleri handle et
+  if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -71,15 +93,36 @@ self.addEventListener('fetch', (event) => {
           });
           
           return response;
+        }).catch(() => {
+          // Network başarısız olursa, index.html'i döndür (SPA için)
+          if (event.request.destination === 'document' || 
+              (event.request.headers && event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
+            const indexPaths = [
+              basePath + 'index.html',
+              basePath.replace(/\/$/, '') + '/index.html',
+              './index.html',
+              '/index.html',
+              'index.html'
+            ];
+            
+            // Her path'i sırayla dene
+            return indexPaths.reduce((promise, path) => {
+              return promise.catch(() => {
+                const fullUrl = new URL(path, self.location.origin).href;
+                return caches.match(fullUrl);
+              });
+            }, Promise.reject());
+          }
+          throw new Error('Network request failed');
         });
       })
       .catch(() => {
-        // Network ve cache başarısız olursa, index.html'i döndür (SPA için)
+        // Her şey başarısız olursa, index.html'i döndür
         if (event.request.destination === 'document' || 
-            event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('./index.html')
-            .then((response) => response || caches.match('/index.html'))
-            .then((response) => response || caches.match('index.html'));
+            (event.request.headers && event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
+          return caches.match(basePath + 'index.html')
+            .then((response) => response || caches.match('./index.html'))
+            .then((response) => response || caches.match('/index.html'));
         }
       })
   );
@@ -96,3 +139,4 @@ function syncProgress() {
   // Sync user progress when online
   return Promise.resolve();
 }
+

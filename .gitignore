@@ -71,3 +71,4 @@ coverage/
 # Git
 .git/
 # .gitignore dosyası commit edilmeli, bu satırı kaldırdık
+

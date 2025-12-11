@@ -97,3 +97,4 @@ https://github.com/YZOKUMUS/yzo1_cursor_ile_yeni_tasarım
 ---
 
 **Hazır olduğunda push komutunu çalıştır!** 🚀
+

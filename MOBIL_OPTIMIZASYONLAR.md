@@ -127,3 +127,4 @@ Bu dokümantasyon, uygulamanın mobil cihazlarda optimal çalışması için yap
 - [Web.dev - PWA](https://web.dev/progressive-web-apps/)
 - [MDN - Touch Events](https://developer.mozilla.org/en-US/docs/Web/API/Touch_events)
 - [CSS Tricks - Safe Area Insets](https://css-tricks.com/the-notch-and-css/)
+

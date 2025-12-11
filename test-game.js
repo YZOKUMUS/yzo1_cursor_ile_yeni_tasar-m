@@ -346,3 +346,4 @@ Mevcut testler:
 
 Örnek: testGame.runAllTests()
 `);
+

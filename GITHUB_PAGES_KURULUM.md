@@ -43,3 +43,4 @@ GitHub Pages, GitHub repository'lerindeki statik web sitelerini ücretsiz olarak
 ---
 
 **GitHub Pages aktif olduktan sonra kullanıcılar doğrudan web üzerinden erişebilir!** 🌐
+

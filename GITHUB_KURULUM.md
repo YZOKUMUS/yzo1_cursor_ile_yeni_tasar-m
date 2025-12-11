@@ -92,3 +92,4 @@ Push işlemi başarılı olduktan sonra:
 ---
 
 **Not:** Eğer push sırasında authentication hatası alırsan, GitHub Personal Access Token oluşturman gerekebilir.
+

@@ -2,12 +2,106 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title>Arapça Kelime Öğrenme Sistemi</title>
     <meta name="description" content="Modern ve bilimsel öğrenme yöntemlerini kullanan kapsamlı bir Arapça kelime öğrenme uygulaması">
     <meta name="theme-color" content="#6366f1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-TileColor" content="#6366f1">
+    <meta name="msapplication-tap-highlight" content="no">
+    <!-- Base tag and Manifest will be set dynamically for GitHub Pages compatibility -->
+    <script>
+        // Base path'i hemen ayarla ve manifest'i oluştur (DOM yüklenmeden önce)
+        (function() {
+            const path = window.location.pathname;
+            let basePath = path.substring(0, path.lastIndexOf('/') + 1);
+            // Root'taysa boş string yap
+            if (basePath === '/' || basePath === '//') {
+                basePath = './';
+            }
+            
+            // Base tag ekle
+            const baseTag = document.createElement('base');
+            baseTag.href = basePath;
+            document.head.insertBefore(baseTag, document.head.firstChild);
+            
+            // Manifest için geçerli URL'ler oluştur
+            // Blob URL kullanıldığında, start_url ve scope için mutlak URL kullanmak gerekiyor
+            // Çünkü blob URL'den yüklenen manifest'lerde relative path'ler çalışmayabilir
+            const origin = window.location.origin;
+            let startUrl, scopeUrl;
+            
+            // Root'taysa '/' kullan, değilse path'i kullan
+            if (basePath === './' || basePath === '/') {
+                startUrl = origin + '/';
+                scopeUrl = origin + '/';
+            } else {
+                // Path'in başında '/' olmalı
+                let path = basePath;
+                if (!path.startsWith('/')) {
+                    path = '/' + path;
+                }
+                // Sondaki '/' karakterini kaldır (scope için)
+                if (path.endsWith('/') && path.length > 1) {
+                    scopeUrl = origin + path.slice(0, -1);
+                } else {
+                    scopeUrl = origin + path;
+                }
+                startUrl = origin + path;
+            }
+            
+            // Manifest'i dinamik oluştur ve ekle
+            const manifest = {
+                "name": "Arapça Kelime Öğrenme Sistemi",
+                "short_name": "Arapça Öğren",
+                "description": "Modern ve bilimsel öğrenme yöntemlerini kullanan kapsamlı bir Arapça kelime öğrenme uygulaması",
+                "start_url": startUrl,
+                "display": "standalone",
+                "background_color": "#667eea",
+                "theme_color": "#6366f1",
+                "orientation": "portrait-primary",
+                "icons": [
+                    {
+                        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📚%3C/text%3E%3C/svg%3E",
+                        "sizes": "192x192",
+                        "type": "image/svg+xml",
+                        "purpose": "any maskable"
+                    },
+                    {
+                        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📚%3C/text%3E%3C/svg%3E",
+                        "sizes": "512x512",
+                        "type": "image/svg+xml",
+                        "purpose": "any maskable"
+                    }
+                ],
+                "categories": ["education", "learning"],
+                "lang": "tr",
+                "dir": "ltr",
+                "scope": scopeUrl,
+                "prefer_related_applications": false
+            };
+            
+            // Manifest'i blob URL olarak oluştur ve link ekle
+            const manifestJson = JSON.stringify(manifest);
+            const blob = new Blob([manifestJson], { type: 'application/json' });
+            const manifestUrl = URL.createObjectURL(blob);
+            const manifestLink = document.createElement('link');
+            manifestLink.rel = 'manifest';
+            manifestLink.href = manifestUrl;
+            manifestLink.id = 'manifest-link';
+            document.head.appendChild(manifestLink);
+            
+            // window.basePath'i global olarak sakla (diğer scriptler için)
+            window.basePath = basePath;
+            
+            console.log('Base path set to:', basePath);
+            console.log('Manifest created with start_url:', startUrl);
+            console.log('Manifest created with scope:', scopeUrl);
+            console.log('Manifest URL:', manifestUrl);
+        })();
+    </script>
     <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json">
     <!-- Modern PWA meta tags -->
     <meta name="mobile-web-app-capable" content="yes">
     <!-- Apple-specific meta tags (for iOS Safari compatibility) -->
@@ -31,6 +125,7 @@
                     <button class="btn-icon" id="shop-btn" title="Mağaza" aria-label="Mağazayı aç" role="button" tabindex="0">💎</button>
                     <button class="btn-icon" id="leaderboard-btn" title="Liderlik Tablosu" aria-label="Liderlik tablosunu görüntüle" role="button" tabindex="0">🏆</button>
                     <button class="btn-icon" id="friends-btn" title="Arkadaşlar" aria-label="Arkadaşlarımı görüntüle" role="button" tabindex="0">👥</button>
+                    <button class="btn-icon" id="error-analysis-btn" title="Hata Analizi" aria-label="Hata analizini görüntüle" role="button" tabindex="0">📊</button>
                     <button class="btn-icon" id="reset-btn" title="Verileri Sıfırla" aria-label="Tüm verileri sıfırla" role="button" tabindex="0" style="color: var(--error-color);">🔄</button>
                 </div>
                 <div class="user-stats" role="status" aria-live="polite" aria-label="Kullanıcı istatistikleri">
@@ -217,7 +312,6 @@
 
                 <!-- Action Buttons -->
                 <div class="action-buttons" role="toolbar" aria-label="Eylem butonları">
-                    <button class="btn btn-secondary" id="error-analysis-btn" aria-label="Hata analizini görüntüle" role="button" tabindex="0">📊 Hata Analizi</button>
                     <button class="btn btn-primary" id="next-btn" style="display: none;" aria-label="Sonraki soruya geç" role="button" tabindex="0">Sonraki →</button>
                 </div>
             </div>
@@ -225,6 +319,19 @@
 
         <!-- Notification Toast -->
         <div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+        <!-- Console Debug Panel -->
+        <div class="console-panel" id="console-panel" style="display: none;">
+            <div class="console-header">
+                <h3>📋 Konsol Mesajları</h3>
+                <div class="console-actions">
+                    <button class="btn-icon-small" id="console-clear-btn" title="Temizle" aria-label="Konsolu temizle">🗑️</button>
+                    <button class="btn-icon-small" id="console-toggle-btn" title="Kapat" aria-label="Konsolu kapat">✕</button>
+                </div>
+            </div>
+            <div class="console-content" id="console-content"></div>
+        </div>
+        <button class="console-toggle-btn" id="console-show-btn" title="Konsolu Göster" aria-label="Konsol panelini göster">📋</button>
 
         <!-- Offline Indicator -->
         <div class="offline-indicator" id="offline-indicator" role="status" aria-live="polite" aria-label="Çevrimdışı mod durumu">
@@ -365,6 +472,25 @@
                 </div>
             </div>
         </div>
+
+        <!-- Chapter Checkpoint Modal -->
+        <div class="modal" id="checkpoint-modal" role="dialog" aria-modal="true" aria-labelledby="checkpoint-title">
+            <div class="modal-content">
+                <h2 id="checkpoint-title">🎯 10 Soru Tamamlandı!</h2>
+                <div class="checkpoint-content" id="checkpoint-content" role="region" aria-label="Checkpoint bilgisi">
+                    <p style="margin-bottom: 20px; font-size: 18px;">
+                        Tebrikler! 10 soruyu tamamladınız. 🎉
+                    </p>
+                    <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                        Devam etmek ister misiniz?
+                    </p>
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" id="continue-chapter-btn" aria-label="Devam et" role="button" tabindex="0">➡️ Devam Et</button>
+                        <button class="btn btn-secondary" id="back-to-dashboard-btn" aria-label="Ana sayfaya dön" role="button" tabindex="0">🏠 Ana Sayfaya Dön</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
@@ -373,19 +499,37 @@
     
     <!-- Service Worker Registration for PWA -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                // GitHub Pages için relative path kullan
-                const swPath = './service-worker.js';
-                navigator.serviceWorker.register(swPath)
-                    .then((registration) => {
-                        console.log('Service Worker registered:', registration.scope);
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
+        // GitHub Pages base path'i otomatik algıla
+        (function() {
+            // Base path'i algıla (repo adıyla başlayan path)
+            const path = window.location.pathname;
+            let basePath = path.substring(0, path.lastIndexOf('/') + 1);
+            // Root'taysa boş string yap
+            if (basePath === '/' || basePath === '//') {
+                basePath = './';
+            }
+            
+            console.log('Detected basePath:', basePath);
+            
+            // Manifest zaten head'de oluşturuldu, sadece Service Worker kaydet
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    // GitHub Pages için path kullan
+                    const swPath = basePath + 'service-worker.js';
+                    navigator.serviceWorker.register(swPath, { scope: basePath })
+                        .then((registration) => {
+                            console.log('Service Worker registered:', registration.scope);
+                        })
+                        .catch((error) => {
+                            console.log('Service Worker registration failed:', error);
+                            // Fallback: relative path dene
+                            navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+                                .then((reg) => console.log('Service Worker registered (fallback):', reg.scope))
+                                .catch((err) => console.log('Service Worker registration failed (fallback):', err));
+                        });
+                });
+            }
+        })();
     </script>
     
     <!-- PWA Install Button -->
@@ -459,6 +603,127 @@
                 }
             }
         });
+    </script>
+    
+    <!-- Console Debug Panel -->
+    <script>
+        (function() {
+            const consolePanel = document.getElementById('console-panel');
+            const consoleContent = document.getElementById('console-content');
+            const consoleShowBtn = document.getElementById('console-show-btn');
+            const consoleToggleBtn = document.getElementById('console-toggle-btn');
+            const consoleClearBtn = document.getElementById('console-clear-btn');
+            
+            let messageCount = 0;
+            const maxMessages = 100; // Maksimum mesaj sayısı
+            
+            // Console.log, warn, error, info'yu yakala
+            const originalLog = console.log;
+            const originalWarn = console.warn;
+            const originalError = console.error;
+            const originalInfo = console.info;
+            
+            function addMessage(message, type = 'log') {
+                if (!consoleContent) return;
+                
+                messageCount++;
+                const time = new Date().toLocaleTimeString('tr-TR');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `console-message ${type}`;
+                
+                // Mesajı formatla
+                let formattedMessage = message;
+                if (typeof message === 'object') {
+                    try {
+                        formattedMessage = JSON.stringify(message, null, 2);
+                    } catch (e) {
+                        formattedMessage = String(message);
+                    }
+                } else {
+                    formattedMessage = String(message);
+                }
+                
+                messageDiv.innerHTML = `<span class="console-time">[${time}]</span><span>${escapeHtml(formattedMessage)}</span>`;
+                
+                consoleContent.appendChild(messageDiv);
+                
+                // Maksimum mesaj sayısını kontrol et
+                if (messageCount > maxMessages) {
+                    const firstMessage = consoleContent.firstElementChild;
+                    if (firstMessage) {
+                        consoleContent.removeChild(firstMessage);
+                        messageCount--;
+                    }
+                }
+                
+                // Otomatik scroll
+                consoleContent.scrollTop = consoleContent.scrollHeight;
+            }
+            
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            // Console.log override
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+                addMessage(args.join(' '), 'log');
+            };
+            
+            // Console.warn override
+            console.warn = function(...args) {
+                originalWarn.apply(console, args);
+                addMessage(args.join(' '), 'warn');
+            };
+            
+            // Console.error override
+            console.error = function(...args) {
+                originalError.apply(console, args);
+                addMessage(args.join(' '), 'error');
+            };
+            
+            // Console.info override
+            console.info = function(...args) {
+                originalInfo.apply(console, args);
+                addMessage(args.join(' '), 'info');
+            };
+            
+            // Panel aç/kapa
+            if (consoleShowBtn) {
+                consoleShowBtn.addEventListener('click', () => {
+                    if (consolePanel) {
+                        consolePanel.style.display = 'flex';
+                        consoleShowBtn.classList.add('hidden');
+                    }
+                });
+            }
+            
+            if (consoleToggleBtn) {
+                consoleToggleBtn.addEventListener('click', () => {
+                    if (consolePanel) {
+                        consolePanel.style.display = 'none';
+                        if (consoleShowBtn) {
+                            consoleShowBtn.classList.remove('hidden');
+                        }
+                    }
+                });
+            }
+            
+            // Konsolu temizle
+            if (consoleClearBtn) {
+                consoleClearBtn.addEventListener('click', () => {
+                    if (consoleContent) {
+                        consoleContent.innerHTML = '';
+                        messageCount = 0;
+                    }
+                });
+            }
+            
+            // İlk mesaj
+            console.log('📋 Konsol paneli aktif! Tüm console mesajları burada görünecek.');
+        })();
     </script>
 </body>
 </html>
