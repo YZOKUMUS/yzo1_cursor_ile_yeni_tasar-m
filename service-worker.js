@@ -1,13 +1,5 @@
 // Service Worker for PWA Support
 const CACHE_NAME = 'arapca-ogrenme-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/data.json.json',
-  '/manifest.json'
-];
 
 // Install event - Cache resources
 self.addEventListener('install', (event) => {
@@ -15,10 +7,17 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache.map(url => new Request(url, {cache: 'reload'})));
-      })
-      .catch((error) => {
-        console.error('Cache failed:', error);
+        // Sadece temel dosyaları cache'le, diğerleri runtime'da eklenecek
+        return cache.addAll([
+          './index.html',
+          './styles.css',
+          './app.js',
+          './manifest.json'
+        ].map(url => new Request(url, {cache: 'reload'}))).catch((error) => {
+          console.log('Some files failed to cache:', error);
+          // Hata olsa bile devam et
+          return Promise.resolve();
+        });
       })
   );
   self.skipWaiting();
@@ -43,19 +42,30 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - Serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
+  // Sadece GET isteklerini handle et
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request).then((response) => {
-          // Don't cache non-GET requests or non-successful responses
-          if (event.request.method !== 'GET' || !response || response.status !== 200) {
+        // Cache'de varsa döndür
+        if (response) {
+          return response;
+        }
+        
+        // Cache'de yoksa network'ten al
+        return fetch(event.request).then((response) => {
+          // Sadece başarılı response'ları cache'le
+          if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
           
-          // Clone the response
+          // Response'u clone'la (bir kez okunabilir)
           const responseToCache = response.clone();
           
+          // Cache'e ekle
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
@@ -64,9 +74,12 @@ self.addEventListener('fetch', (event) => {
         });
       })
       .catch(() => {
-        // If both cache and network fail, return offline page if available
-        if (event.request.destination === 'document') {
-          return caches.match('/index.html');
+        // Network ve cache başarısız olursa, index.html'i döndür (SPA için)
+        if (event.request.destination === 'document' || 
+            event.request.headers.get('accept').includes('text/html')) {
+          return caches.match('./index.html')
+            .then((response) => response || caches.match('/index.html'))
+            .then((response) => response || caches.match('index.html'));
         }
       })
   );

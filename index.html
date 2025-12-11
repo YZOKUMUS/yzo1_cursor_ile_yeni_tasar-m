@@ -24,6 +24,7 @@
             <div class="header-content">
                 <h1>📚 Arapça Kelime Öğrenme<span class="premium-badge" id="premium-badge" style="display: none;" aria-label="Premium Üye">PREMIUM</span></h1>
                 <div class="header-actions" role="toolbar" aria-label="Ana menü araçları">
+                    <button class="btn-icon" id="install-btn" title="Ana Ekrana Ekle" aria-label="Uygulamayı ana ekrana ekle" role="button" tabindex="0" style="display: none;">📱</button>
                     <button class="btn-icon" id="badges-btn" title="Rozetler" aria-label="Rozetlerimi görüntüle" role="button" tabindex="0">🎖️</button>
                     <button class="btn-icon" id="theme-toggle" title="Tema Değiştir" aria-label="Karanlık/Aydınlık tema değiştir" role="button" tabindex="0">🌙</button>
                     <button class="btn-icon" id="offline-download-btn" title="Offline Ders İndir" aria-label="Offline ders indir" role="button" tabindex="0" style="display: none;">📥</button>
@@ -374,7 +375,9 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
+                // GitHub Pages için relative path kullan
+                const swPath = './service-worker.js';
+                navigator.serviceWorker.register(swPath)
                     .then((registration) => {
                         console.log('Service Worker registered:', registration.scope);
                     })
@@ -383,6 +386,79 @@
                     });
             });
         }
+    </script>
+    
+    <!-- PWA Install Button -->
+    <script>
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+        
+        // beforeinstallprompt event - PWA kurulumu için hazır olduğunda
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Varsayılan prompt'u engelle
+            e.preventDefault();
+            // Event'i sakla
+            deferredPrompt = e;
+            // Install butonunu göster
+            if (installBtn) {
+                installBtn.style.display = 'inline-flex';
+            }
+        });
+        
+        // Install butonuna tıklandığında
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    // iOS Safari için özel mesaj
+                    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                        alert('iOS\'ta ana ekrana eklemek için:\n1. Safari\'nin alt kısmındaki paylaşım butonuna (⬆️) dokunun\n2. "Ana Ekrana Ekle" seçeneğini seçin');
+                        return;
+                    }
+                    // Android Chrome için alternatif
+                    alert('Ana ekrana eklemek için tarayıcı menüsünden "Ana ekrana ekle" seçeneğini kullanın.');
+                    return;
+                }
+                
+                // Prompt'u göster
+                deferredPrompt.prompt();
+                
+                // Kullanıcının seçimini bekle
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('Kullanıcı PWA kurulumunu kabul etti');
+                } else {
+                    console.log('Kullanıcı PWA kurulumunu reddetti');
+                }
+                
+                // Prompt'u temizle
+                deferredPrompt = null;
+                // Butonu gizle
+                if (installBtn) {
+                    installBtn.style.display = 'none';
+                }
+            });
+        }
+        
+        // PWA zaten kuruluysa butonu gizle
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA kuruldu');
+            if (installBtn) {
+                installBtn.style.display = 'none';
+            }
+            deferredPrompt = null;
+        });
+        
+        // Sayfa yüklendiğinde kontrol et (zaten kurulu mu?)
+        window.addEventListener('load', () => {
+            // Standalone modda çalışıyorsa (zaten kurulu)
+            if (window.matchMedia('(display-mode: standalone)').matches || 
+                window.navigator.standalone === true) {
+                if (installBtn) {
+                    installBtn.style.display = 'none';
+                }
+            }
+        });
     </script>
 </body>
 </html>
