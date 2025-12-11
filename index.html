@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arapça Kelime Öğrenme Sistemi</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header" role="banner">
+            <div class="header-content">
+                <h1>📚 Arapça Kelime Öğrenme<span class="premium-badge" id="premium-badge" style="display: none;" aria-label="Premium Üye">PREMIUM</span></h1>
+                <div class="header-actions" role="toolbar" aria-label="Ana menü araçları">
+                    <button class="btn-icon" id="badges-btn" title="Rozetler" aria-label="Rozetlerimi görüntüle" role="button" tabindex="0">🎖️</button>
+                    <button class="btn-icon" id="theme-toggle" title="Tema Değiştir" aria-label="Karanlık/Aydınlık tema değiştir" role="button" tabindex="0">🌙</button>
+                    <button class="btn-icon" id="offline-download-btn" title="Offline Ders İndir" aria-label="Offline ders indir" role="button" tabindex="0" style="display: none;">📥</button>
+                    <button class="btn-icon" id="shop-btn" title="Mağaza" aria-label="Mağazayı aç" role="button" tabindex="0">💎</button>
+                    <button class="btn-icon" id="leaderboard-btn" title="Liderlik Tablosu" aria-label="Liderlik tablosunu görüntüle" role="button" tabindex="0">🏆</button>
+                    <button class="btn-icon" id="friends-btn" title="Arkadaşlar" aria-label="Arkadaşlarımı görüntüle" role="button" tabindex="0">👥</button>
+                    <button class="btn-icon" id="reset-btn" title="Verileri Sıfırla" aria-label="Tüm verileri sıfırla" role="button" tabindex="0" style="color: var(--error-color);">🔄</button>
+                </div>
+                <div class="user-stats" role="status" aria-live="polite" aria-label="Kullanıcı istatistikleri">
+                    <div class="stat-item" role="group" aria-label="Can sayısı">
+                        <span class="stat-icon" aria-hidden="true">❤️</span>
+                        <span class="stat-value" id="hearts" aria-label="Can sayısı">-</span>
+                        <span class="stat-label">Can</span>
+                    </div>
+                    <div class="stat-item" role="group" aria-label="Günlük seri">
+                        <span class="stat-icon" aria-hidden="true">🔥</span>
+                        <span class="stat-value" id="streak" aria-label="Günlük seri">-</span>
+                        <span class="stat-label">Gün</span>
+                    </div>
+                    <div class="stat-item" role="group" aria-label="Deneyim puanı">
+                        <span class="stat-icon" aria-hidden="true">⭐</span>
+                        <span class="stat-value" id="xp" aria-label="Deneyim puanı">-</span>
+                        <span class="stat-label">XP</span>
+                    </div>
+                    <div class="stat-item" role="group" aria-label="Taç seviyesi">
+                        <span class="stat-icon" aria-hidden="true">👑</span>
+                        <span class="stat-value" id="crown-level" aria-label="Taç seviyesi">-</span>
+                        <span class="stat-label">Crown</span>
+                    </div>
+                    <div class="stat-item" role="group" aria-label="Değerli taş sayısı">
+                        <span class="stat-icon" aria-hidden="true">💎</span>
+                        <span class="stat-value" id="gems" aria-label="Değerli taş sayısı">-</span>
+                        <span class="stat-label">Gems</span>
+                    </div>
+                    <div class="stat-item" role="group" aria-label="Seviye">
+                        <span class="stat-icon" aria-hidden="true">🎯</span>
+                        <span class="stat-value" id="level" aria-label="Seviye">-</span>
+                        <span class="stat-label">Seviye</span>
+                    </div>
+                    <div class="stat-item league-item" id="league-display" role="group" aria-label="Lig">
+                        <span class="stat-icon" id="league-icon" aria-hidden="true">🥉</span>
+                        <span class="stat-value" id="league-name" aria-label="Lig adı">-</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-section" role="region" aria-label="İlerleme bilgisi">
+            <div class="daily-goal">
+                <span>Günlük Hedef: <strong id="daily-progress" aria-label="Tamamlanan günlük hedef">-</strong> / <strong id="daily-goal" aria-label="Günlük hedef">-</strong></span>
+                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Günlük hedef ilerlemesi">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%;" aria-hidden="true"></div>
+                </div>
+            </div>
+            <div class="daily-chest-section">
+                <button class="chest-btn" id="daily-chest-btn" title="Günlük Sandık" aria-label="Günlük sandığı aç" role="button" tabindex="0">
+                    <span class="chest-icon" aria-hidden="true">📦</span>
+                    <span>Günlük Sandık</span>
+                </button>
+                <div class="challenge-timer" id="challenge-timer" style="display: none;" role="timer" aria-live="polite" aria-label="Zamanlı görev süresi">
+                    <span>⏱️ Zamanlı Görev: </span>
+                    <span id="challenge-time" aria-label="Kalan süre">00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content" role="main">
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view active" role="region" aria-label="Ana sayfa">
+                <!-- Navigation Tabs -->
+                <nav class="nav-tabs" role="tablist" aria-label="Ana navigasyon sekmeleri">
+                    <button class="nav-tab active" data-tab="learn" role="tab" aria-selected="true" aria-controls="tab-learn" tabindex="0">📚 Öğren</button>
+                    <button class="nav-tab" data-tab="skill-tree" role="tab" aria-selected="false" aria-controls="tab-skill-tree" tabindex="0">🌳 Ders Ağacı</button>
+                    <button class="nav-tab" data-tab="stories" role="tab" aria-selected="false" aria-controls="tab-stories" tabindex="0">📖 Hikâyeler</button>
+                    <button class="nav-tab" data-tab="challenges" role="tab" aria-selected="false" aria-controls="tab-challenges" tabindex="0">⚡ Görevler</button>
+                    <button class="nav-tab" data-tab="test-out" role="tab" aria-selected="false" aria-controls="tab-test-out" tabindex="0">📝 Test-Out</button>
+                </nav>
+
+                <!-- Learn Tab -->
+                <div class="tab-content active" id="tab-learn" role="tabpanel" aria-labelledby="tab-learn">
+                    <div class="chapters-section">
+                        <h2>📚 Bölümler</h2>
+                        <div class="chapters-grid" id="chapters-container" role="grid" aria-label="Bölümler listesi">
+                            <!-- Chapters will be dynamically added -->
+                        </div>
+                    </div>
+                    <div class="dashboard-grid" role="group" aria-label="Öğrenme modları">
+                        <div class="card learning-mode-card" data-mode="spaced-repetition" role="button" aria-label="Aralıklı Tekrar modunu başlat" tabindex="0">
+                            <div class="card-icon" aria-hidden="true">🔄</div>
+                            <h3>Aralıklı Tekrar</h3>
+                            <p>Unutma eğrisine göre zamanlanmış tekrarlar</p>
+                            <div class="card-badge" id="srs-count" aria-label="Tekrar edilecek kelime sayısı">0 kelime</div>
+                        </div>
+                        
+                        <div class="card learning-mode-card" data-mode="interleaved" role="button" aria-label="Karma Alıştırma modunu başlat" tabindex="0">
+                            <div class="card-icon" aria-hidden="true">🎲</div>
+                            <h3>Karma Alıştırma</h3>
+                            <p>Farklı görev türlerinin karışık verilmesi</p>
+                        </div>
+                        
+                        <div class="card learning-mode-card" data-mode="audio-first" role="button" aria-label="Sesli Öğrenme modunu başlat" tabindex="0">
+                            <div class="card-icon" aria-hidden="true">🎧</div>
+                            <h3>Sesli Öğrenme</h3>
+                            <p>Dinle ve seç yöntemiyle öğrenme</p>
+                        </div>
+                        
+                        <div class="card learning-mode-card" data-mode="recognition-recall" role="button" aria-label="Tanıma ve Hatırlama modunu başlat" tabindex="0">
+                            <div class="card-icon" aria-hidden="true">🧠</div>
+                            <h3>Tanıma → Hatırlama</h3>
+                            <p>Aşamalı öğrenme sistemi</p>
+                        </div>
+                        
+                        <div class="card learning-mode-card" data-mode="contextual" role="button" aria-label="Bağlamsal Öğrenme modunu başlat" tabindex="0">
+                            <div class="card-icon" aria-hidden="true">📖</div>
+                            <h3>Bağlamsal Öğrenme</h3>
+                            <p>Cümle içinde kelime öğrenme (Konuşma egzersizleri dahil)</p>
+                        </div>
+                        
+                        <div class="card learning-mode-card" data-mode="weak-words" role="button" aria-label="Zayıf Kelimeler modunu başlat" tabindex="0">
+                            <div class="card-icon" aria-hidden="true">💪</div>
+                            <h3>Zayıf Kelimeler</h3>
+                            <p>Zorlandığın kelimeleri güçlendir</p>
+                            <div class="card-badge" id="weak-count" aria-label="Zayıf kelime sayısı">0 kelime</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Skill Tree Tab -->
+                <div class="tab-content" id="tab-skill-tree" role="tabpanel" aria-labelledby="tab-skill-tree">
+                    <div class="skill-tree-container" id="skill-tree-container" role="tree" aria-label="Ders ağacı">
+                        <!-- Skill tree will be dynamically added -->
+                    </div>
+                </div>
+
+                <!-- Stories Tab -->
+                <div class="tab-content" id="tab-stories" role="tabpanel" aria-labelledby="tab-stories">
+                    <div class="stories-grid" id="stories-container" role="grid" aria-label="Hikayeler listesi">
+                        <!-- Stories will be dynamically added -->
+                    </div>
+                </div>
+
+                <!-- Challenges Tab -->
+                <div class="tab-content" id="tab-challenges" role="tabpanel" aria-labelledby="tab-challenges">
+                    <div class="challenges-grid" id="challenges-container" role="grid" aria-label="Görevler listesi">
+                        <!-- Challenges will be dynamically added -->
+                    </div>
+                </div>
+
+                <!-- Test-Out Tab -->
+                <div class="tab-content" id="tab-test-out" role="tabpanel" aria-labelledby="tab-test-out">
+                    <div class="test-out-container" id="test-out-container" role="region" aria-label="Test-Out sınavları">
+                        <!-- Test-out exams will be dynamically added -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning View -->
+            <div id="learning-view" class="view" role="region" aria-label="Öğrenme ekranı">
+                <div class="learning-header">
+                    <button class="btn-back" id="back-btn" aria-label="Ana sayfaya dön" role="button" tabindex="0">← Geri</button>
+                    <div class="learning-mode-title" id="mode-title" role="heading" aria-level="2"></div>
+                    <div class="session-stats" role="status" aria-live="polite" aria-label="Oturum istatistikleri">
+                        <span class="hearts-display">
+                            <span id="session-hearts" aria-label="Kalan can">-</span>
+                        </span>
+                        <span>Doğru: <strong id="correct-count" aria-label="Doğru cevap sayısı">-</strong></span>
+                        <span>Yanlış: <strong id="wrong-count" aria-label="Yanlış cevap sayısı">-</strong></span>
+                    </div>
+                </div>
+
+                <!-- Question Card -->
+                <div class="question-card" id="question-card" role="region" aria-label="Soru">
+                    <div class="question-content" id="question-content" role="article" aria-live="polite">
+                        <!-- Question will be dynamically loaded -->
+                    </div>
+                </div>
+
+                <!-- Answer Options -->
+                <div class="answer-options" id="answer-options" role="group" aria-label="Cevap seçenekleri">
+                    <!-- Options will be dynamically loaded -->
+                </div>
+
+                <!-- Feedback Area -->
+                <div class="feedback-area" id="feedback-area" role="status" aria-live="polite" aria-atomic="true"></div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons" role="toolbar" aria-label="Eylem butonları">
+                    <button class="btn btn-secondary" id="error-analysis-btn" aria-label="Hata analizini görüntüle" role="button" tabindex="0">📊 Hata Analizi</button>
+                    <button class="btn btn-primary" id="next-btn" style="display: none;" aria-label="Sonraki soruya geç" role="button" tabindex="0">Sonraki →</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Notification Toast -->
+        <div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+        <!-- Offline Indicator -->
+        <div class="offline-indicator" id="offline-indicator" role="status" aria-live="polite" aria-label="Çevrimdışı mod durumu">
+            📴 Çevrimdışı Moddasınız
+        </div>
+
+        <!-- Offline Download Modal -->
+        <div class="modal" id="offline-download-modal" role="dialog" aria-modal="true" aria-labelledby="offline-download-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="offline-download-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="offline-download-title">📥 Offline Ders İndirme</h2>
+                <div class="offline-download-content" id="offline-download-content" role="region" aria-label="Offline ders indirme seçenekleri">
+                    <!-- Offline download options will be dynamically added -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <!-- Shop Modal -->
+        <div class="modal" id="shop-modal" role="dialog" aria-modal="true" aria-labelledby="shop-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="shop-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="shop-title">💎 Mağaza</h2>
+                <div class="shop-content" id="shop-content" role="region" aria-label="Mağaza ürünleri">
+                    <!-- Shop items will be dynamically added -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Modal -->
+        <div class="modal" id="leaderboard-modal" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="leaderboard-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="leaderboard-title">🏆 Liderlik Tablosu</h2>
+                <div class="leaderboard-content" id="leaderboard-content" role="region" aria-label="Liderlik tablosu" aria-live="polite">
+                    <!-- Leaderboard will be dynamically added -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Friends Modal -->
+        <div class="modal" id="friends-modal" role="dialog" aria-modal="true" aria-labelledby="friends-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="friends-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="friends-title">👥 Arkadaşlar</h2>
+                <div class="friends-content" id="friends-content" role="region" aria-label="Arkadaşlar listesi">
+                    <!-- Friends list will be dynamically added -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Chest Modal -->
+        <div class="modal" id="chest-modal" role="dialog" aria-modal="true" aria-labelledby="chest-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="chest-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="chest-title">📦 Günlük Sandık</h2>
+                <div class="chest-content" id="chest-content" role="region" aria-label="Günlük sandık ödülleri" aria-live="polite">
+                    <!-- Chest rewards will be dynamically added -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Gift Chest Modal -->
+        <div class="modal" id="gift-modal" role="dialog" aria-modal="true" aria-labelledby="gift-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="gift-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="gift-title">🎁 Hediye Sandığı</h2>
+                <div class="gift-content" id="gift-content" role="region" aria-label="Hediye sandığı ödülleri" aria-live="polite">
+                    <!-- Gift rewards will be dynamically added -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Ad Modal (for free users) -->
+        <div class="modal" id="ad-modal" role="dialog" aria-modal="true" aria-labelledby="ad-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="ad-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="ad-title">📺 Reklam İzle</h2>
+                <div class="ad-content" id="ad-content" role="region" aria-label="Reklam izleme seçenekleri">
+                    <p>Reklam izleyerek can kazanabilirsiniz!</p>
+                    <button class="btn btn-primary" id="watch-ad-btn" aria-label="Reklam izle" role="button" tabindex="0">Reklam İzle</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hearts Refill Modal -->
+        <div class="modal" id="hearts-modal" role="dialog" aria-modal="true" aria-labelledby="hearts-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="hearts-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="hearts-title">❤️ Canlarınız Bitti!</h2>
+                <div class="hearts-refill-content" id="hearts-refill-content" role="region" aria-label="Can yenileme seçenekleri">
+                    <p>Canlarınızı yenilemek için:</p>
+                    <button class="btn btn-primary" id="refill-hearts-gems" aria-label="50 değerli taş ile canları yenile" role="button" tabindex="0">💎 Gems ile Yenile (50)</button>
+                    <button class="btn btn-secondary" id="refill-hearts-ad" aria-label="Reklam izleyerek canları yenile" role="button" tabindex="0">📺 Reklam İzle</button>
+                    <button class="btn btn-secondary" id="refill-hearts-wait" aria-label="30 dakika bekle" role="button" tabindex="0">⏰ Bekle (30 dakika)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Analysis Modal -->
+        <div class="modal" id="error-analysis-modal" role="dialog" aria-modal="true" aria-labelledby="error-analysis-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="error-analysis-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="error-analysis-title">📊 Hata Analizi</h2>
+                <div class="error-analysis-content" id="error-analysis-content" role="region" aria-label="Hata analizi sonuçları" aria-live="polite">
+                    <!-- Error analysis will be dynamically added -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Badges Modal -->
+        <div class="modal" id="badges-modal" role="dialog" aria-modal="true" aria-labelledby="badges-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="badges-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="badges-title">🎖️ Rozetler</h2>
+                <div class="badges-grid" id="badges-container" role="grid" aria-label="Rozetler listesi">
+                    <!-- Badges will be dynamically added -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Confirmation Modal -->
+        <div class="modal" id="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-title">
+            <div class="modal-content">
+                <span class="modal-close" data-modal="reset-modal" aria-label="Modalı kapat" role="button" tabindex="0">&times;</span>
+                <h2 id="reset-title">🔄 Verileri Sıfırla</h2>
+                <div class="reset-content" id="reset-content" role="region" aria-label="Veri sıfırlama onayı">
+                    <p style="color: var(--error-color); font-weight: 600; margin-bottom: 20px;">
+                        ⚠️ Bu işlem geri alınamaz!
+                    </p>
+                    <p style="margin-bottom: 20px;">
+                        Tüm ilerlemeniz, rozetleriniz, XP'niz ve diğer tüm veriler silinecek.
+                    </p>
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button class="btn btn-secondary" id="cancel-reset-btn" aria-label="İptal et" role="button" tabindex="0">İptal</button>
+                        <button class="btn" id="confirm-reset-btn" style="background: var(--error-color); color: white;" aria-label="Tüm verileri sıfırla" role="button" tabindex="0">Sıfırla</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <!-- Test Game Script - Browser console'da testGame.runAllTests() ile kullanılabilir -->
+    <script src="test-game.js"></script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,167 @@
+[
+  {
+    "id_number": "TEST_001",
+    "surah_name": "Test Suresi 1",
+    "arabic_word": "كَلِمَة",
+    "turkish_mean": "kelime",
+    "ayah_text": "هَذِهِ كَلِمَةٌ فِي جُمْلَةٍ",
+    "meal": "Bu bir cümlede kelimedir.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_001.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test001.mp3",
+    "word_diffuculty": 3
+  },
+  {
+    "id_number": "TEST_002",
+    "surah_name": "Test Suresi 2",
+    "arabic_word": "كِتَاب",
+    "turkish_mean": "kitap",
+    "ayah_text": "هَذَا كِتَابٌ مُبِينٌ",
+    "meal": "Bu açık bir kitaptır.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_002.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test002.mp3",
+    "word_diffuculty": 2
+  },
+  {
+    "id_number": "TEST_003",
+    "surah_name": "Test Suresi 3",
+    "arabic_word": "قَلَم",
+    "turkish_mean": "kalem",
+    "ayah_text": "نَعَمْ وَالْقَلَمِ",
+    "meal": "Evet, kaleme yemin olsun.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_003.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test003.mp3",
+    "word_diffuculty": 4
+  },
+  {
+    "id_number": "TEST_004",
+    "surah_name": "Test Suresi 4",
+    "arabic_word": "مَسْجِد",
+    "turkish_mean": "mescid",
+    "ayah_text": "وَأَنَّ الْمَسَاجِدَ لِلَّهِ",
+    "meal": "Mescidler Allah'a aittir.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_004.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test004.mp3",
+    "word_diffuculty": 5
+  },
+  {
+    "id_number": "TEST_005",
+    "surah_name": "Test Suresi 5",
+    "arabic_word": "صَلَاة",
+    "turkish_mean": "namaz",
+    "ayah_text": "وَأَقِيمُوا الصَّلَاةَ",
+    "meal": "Namazı kılın.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_005.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test005.mp3",
+    "word_diffuculty": 6
+  },
+  {
+    "id_number": "TEST_006",
+    "surah_name": "Test Suresi 6",
+    "arabic_word": "زَكَاة",
+    "turkish_mean": "zekat",
+    "ayah_text": "وَآتُوا الزَّكَاةَ",
+    "meal": "Zekatı verin.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_006.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test006.mp3",
+    "word_diffuculty": 7
+  },
+  {
+    "id_number": "TEST_007",
+    "surah_name": "Test Suresi 7",
+    "arabic_word": "صَوْم",
+    "turkish_mean": "oruç",
+    "ayah_text": "كُتِبَ عَلَيْكُمُ الصِّيَامُ",
+    "meal": "Oruç size farz kılındı.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_007.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test007.mp3",
+    "word_diffuculty": 8
+  },
+  {
+    "id_number": "TEST_008",
+    "surah_name": "Test Suresi 8",
+    "arabic_word": "حَج",
+    "turkish_mean": "hac",
+    "ayah_text": "وَأَتِمُّوا الْحَجَّ",
+    "meal": "Haccı tamamlayın.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_008.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test008.mp3",
+    "word_diffuculty": 9
+  },
+  {
+    "id_number": "TEST_009",
+    "surah_name": "Test Suresi 9",
+    "arabic_word": "جَنَّة",
+    "turkish_mean": "cennet",
+    "ayah_text": "وَجَنَّةٌ عَرْضُهَا السَّمَاوَاتُ",
+    "meal": "Genişliği gökler kadar olan cennet.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_009.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test009.mp3",
+    "word_diffuculty": 10
+  },
+  {
+    "id_number": "TEST_010",
+    "surah_name": "Test Suresi 10",
+    "arabic_word": "نَار",
+    "turkish_mean": "ateş",
+    "ayah_text": "وَالنَّارُ مَثْوًى لَهُمْ",
+    "meal": "Ateş onların kalacağı yerdir.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_010.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test010.mp3",
+    "word_diffuculty": 11
+  },
+  {
+    "id_number": "TEST_011",
+    "surah_name": "Test Suresi 11",
+    "arabic_word": "رَحْمَة",
+    "turkish_mean": "rahmet",
+    "ayah_text": "وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ",
+    "meal": "Rahmetim her şeyi kuşatmıştır.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_011.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test011.mp3",
+    "word_diffuculty": 12
+  },
+  {
+    "id_number": "TEST_012",
+    "surah_name": "Test Suresi 12",
+    "arabic_word": "عِلْم",
+    "turkish_mean": "ilim",
+    "ayah_text": "وَفَوْقَ كُلِّ ذِي عِلْمٍ عَلِيمٌ",
+    "meal": "Her bilenin üstünde bir bilen vardır.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_012.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test012.mp3",
+    "word_diffuculty": 13
+  },
+  {
+    "id_number": "TEST_013",
+    "surah_name": "Test Suresi 13",
+    "arabic_word": "حِكْمَة",
+    "turkish_mean": "hikmet",
+    "ayah_text": "يُؤْتِي الْحِكْمَةَ مَنْ يَشَاءُ",
+    "meal": "Allah hikmeti dilediğine verir.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_013.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test013.mp3",
+    "word_diffuculty": 14
+  },
+  {
+    "id_number": "TEST_014",
+    "surah_name": "Test Suresi 14",
+    "arabic_word": "صَبْر",
+    "turkish_mean": "sabır",
+    "ayah_text": "وَاسْتَعِينُوا بِالصَّبْرِ",
+    "meal": "Sabırla yardım isteyin.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_014.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test014.mp3",
+    "word_diffuculty": 15
+  },
+  {
+    "id_number": "TEST_015",
+    "surah_name": "Test Suresi 15",
+    "arabic_word": "شُكْر",
+    "turkish_mean": "şükür",
+    "ayah_text": "وَاشْكُرُوا لِي",
+    "meal": "Bana şükredin.",
+    "sound_url": "https://audios.quranwbw.com/words/test/test_015.mp3",
+    "ayah_sound_url": "https://tanzil.net/res/audio/afasy/test015.mp3",
+    "word_diffuculty": 16
+  }
+]

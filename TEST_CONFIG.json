@@ -1,0 +1,195 @@
+{
+  "testConfig": {
+    "version": "1.0.0",
+    "lastUpdated": "2024-01-01",
+    "description": "Test configuration for Arapça Kelime Öğrenme Sistemi",
+    
+    "testSettings": {
+      "enableConsoleLogs": true,
+      "enablePerformanceMetrics": true,
+      "enableAccessibilityChecks": true,
+      "enableErrorTracking": true,
+      "testTimeout": 30000,
+      "retryAttempts": 3
+    },
+    
+    "testModes": {
+      "spacedRepetition": {
+        "enabled": true,
+        "testWords": 10,
+        "minCorrectRate": 0.7
+      },
+      "interleaved": {
+        "enabled": true,
+        "testWords": 15,
+        "minCorrectRate": 0.6
+      },
+      "audioFirst": {
+        "enabled": true,
+        "testWords": 10,
+        "minCorrectRate": 0.7,
+        "audioTimeout": 5000
+      },
+      "recognitionRecall": {
+        "enabled": true,
+        "testWords": 12,
+        "minCorrectRate": 0.65
+      },
+      "contextual": {
+        "enabled": true,
+        "testWords": 10,
+        "minCorrectRate": 0.7,
+        "requireAyahText": true
+      },
+      "weakWords": {
+        "enabled": true,
+        "testWords": 8,
+        "minCorrectRate": 0.5
+      },
+      "chapter": {
+        "enabled": true,
+        "testChapters": [1, 2],
+        "minCompletionRate": 0.8
+      }
+    },
+    
+    "gamificationTests": {
+      "xpSystem": {
+        "enabled": true,
+        "testXPAmounts": [10, 25, 50, 100],
+        "levelThresholds": [100, 200, 500, 1000]
+      },
+      "heartsSystem": {
+        "enabled": true,
+        "initialHearts": 5,
+        "maxHearts": 5,
+        "refillInterval": 1800000,
+        "testLoseHeart": true
+      },
+      "gemsSystem": {
+        "enabled": true,
+        "testGemsAmounts": [10, 25, 50],
+        "validateNegative": true
+      },
+      "streakSystem": {
+        "enabled": true,
+        "testStreakDays": [1, 7, 30],
+        "testStreakBreak": true
+      },
+      "badgesSystem": {
+        "enabled": true,
+        "testBadges": [
+          "first_steps",
+          "learner",
+          "scholar",
+          "week_warrior",
+          "month_master",
+          "daily_achiever",
+          "century",
+          "half_k"
+        ]
+      },
+      "leagueSystem": {
+        "enabled": true,
+        "testLeagues": ["bronze", "silver", "gold", "platinum", "diamond"],
+        "testXPThresholds": [0, 1000, 5000, 15000, 50000]
+      }
+    },
+    
+    "edgeCaseTests": {
+      "localStorageFull": {
+        "enabled": true,
+        "simulateQuotaExceeded": true
+      },
+      "networkError": {
+        "enabled": true,
+        "simulateOffline": true,
+        "testOfflineCache": true
+      },
+      "corruptedData": {
+        "enabled": true,
+        "testInvalidJSON": true,
+        "testMissingFields": true
+      },
+      "emptyData": {
+        "enabled": true,
+        "testEmptyWords": true,
+        "testEmptyProgress": true
+      },
+      "rapidClicks": {
+        "enabled": true,
+        "clickInterval": 50,
+        "maxClicks": 10
+      },
+      "modalManagement": {
+        "enabled": true,
+        "testMultipleModals": true,
+        "testModalFocus": true
+      },
+      "audioManagement": {
+        "enabled": true,
+        "testAudioOverlap": true,
+        "testAudioStop": true
+      }
+    },
+    
+    "performanceTests": {
+      "debouncing": {
+        "enabled": true,
+        "testDebounceDelay": 300,
+        "testThrottleDelay": 100
+      },
+      "lazyLoading": {
+        "enabled": true,
+        "testIntersectionObserver": true,
+        "testLazyContent": true
+      },
+      "animations": {
+        "enabled": true,
+        "testRequestAnimationFrame": true,
+        "testSmoothTransitions": true
+      }
+    },
+    
+    "accessibilityTests": {
+      "ariaLabels": {
+        "enabled": true,
+        "checkAllInteractiveElements": true,
+        "checkModalLabels": true
+      },
+      "keyboardNavigation": {
+        "enabled": true,
+        "testTabNavigation": true,
+        "testEnterSpace": true,
+        "testEscape": true,
+        "testArrowKeys": true
+      },
+      "focusManagement": {
+        "enabled": true,
+        "testModalFocus": true,
+        "testTabFocus": true,
+        "testFocusRestoration": true
+      },
+      "screenReader": {
+        "enabled": true,
+        "testAriaLive": true,
+        "testAriaHidden": true,
+        "testAriaSelected": true
+      }
+    },
+    
+    "testData": {
+      "testWordsFile": "TEST_WORDS.json",
+      "testProgressFile": "test_progress.json",
+      "testLogsFile": "TEST_LOGS.md"
+    },
+    
+    "reporting": {
+      "generateReport": true,
+      "reportFormat": "markdown",
+      "includeScreenshots": false,
+      "includePerformanceMetrics": true,
+      "includeAccessibilityReport": true
+    }
+  }
+}
