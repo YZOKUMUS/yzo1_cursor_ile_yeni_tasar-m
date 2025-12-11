@@ -17,7 +17,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache, basePath:', basePath);
+        if (DEBUG) console.log('Opened cache, basePath:', basePath);
         // Base path ile dosyaları cache'le
         const filesToCache = [
           basePath,
@@ -45,7 +45,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
+            if (DEBUG) console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
