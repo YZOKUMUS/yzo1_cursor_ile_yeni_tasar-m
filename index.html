@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Arapça Kelime Öğrenme Sistemi</title>
     <meta name="description" content="Modern ve bilimsel öğrenme yöntemlerini kullanan kapsamlı bir Arapça kelime öğrenme uygulaması">
     <meta name="theme-color" content="#6366f1">
@@ -14,6 +14,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Arapça Öğren">
+    <!-- iOS Icon (fallback to manifest icon) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📚%3C/text%3E%3C/svg%3E">
 </head>
 <body>
     <div class="app-container">
@@ -119,7 +121,7 @@
                         </div>
                         
                         <div class="card learning-mode-card" data-mode="interleaved" role="button" aria-label="Karma Alıştırma modunu başlat" tabindex="0">
-                            <div class="card-icon" aria-hidden="true">🎲</div>
+                            <div class="card-icon" aria-hidden="true">🔀</div>
                             <h3>Karma Alıştırma</h3>
                             <p>Farklı görev türlerinin karışık verilmesi</p>
                         </div>
@@ -131,7 +133,9 @@
                         </div>
                         
                         <div class="card learning-mode-card" data-mode="recognition-recall" role="button" aria-label="Tanıma ve Hatırlama modunu başlat" tabindex="0">
-                            <div class="card-icon" aria-hidden="true">🧠</div>
+                            <div class="card-icon" aria-hidden="true">
+                                <img src="dinle-bul.png" alt="Tanıma ve Hatırlama">
+                            </div>
                             <h3>Tanıma → Hatırlama</h3>
                             <p>Aşamalı öğrenme sistemi</p>
                         </div>

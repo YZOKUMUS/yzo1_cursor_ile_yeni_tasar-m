@@ -4,6 +4,9 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    /* Mobile touch optimizations */
+    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
+    touch-action: manipulation;
 }
 
 :root {
@@ -42,6 +45,8 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: var(--text-primary);
+    /* Safe area insets for iPhone X and later (notch support) */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .app-container {
@@ -179,6 +184,16 @@ body {
 .card-icon {
     font-size: 48px;
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-icon img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    display: block;
 }
 
 .card h3 {
@@ -499,6 +514,11 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    /* Mobile touch-friendly: minimum 44x44px touch target */
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary {
@@ -1618,6 +1638,12 @@ body {
     border-radius: 8px;
     font-size: 16px;
     margin-top: 16px;
+    /* Mobile optimizations */
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
 }
 
 /* Story Progress Indicator */
@@ -1752,6 +1778,49 @@ body {
     .dashboard-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
+}
+
+/* Additional Mobile Optimizations */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Prevent text size adjustment on iOS */
+@media screen and (max-width: 768px) {
+    input,
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+}
+
+/* Smooth scrolling for mobile */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Safe area support for modals */
+.modal-content {
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+}
+
+/* Prevent pull-to-refresh on mobile (optional, can be removed if needed) */
+body {
+    overscroll-behavior-y: contain;
 }
 
 

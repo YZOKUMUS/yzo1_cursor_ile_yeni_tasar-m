@@ -821,13 +821,13 @@ class LearningSystem {
         
         const modeTitles = {
             'spaced-repetition': '🔄 Aralıklı Tekrar Sistemi',
-            'interleaved': '🎲 Karma Alıştırma',
+            'interleaved': '🔀 Karma Alıştırma',
             'audio-first': '🎧 Sesli Öğrenme',
-            'recognition-recall': '🧠 Tanıma → Hatırlama',
+            'recognition-recall': 'Tanıma → Hatırlama',
             'contextual': '📖 Bağlamsal Öğrenme',
             'weak-words': '💪 Zayıf Kelimeler',
             'conversation': '📖 Bağlamsal Öğrenme', // Merged into contextual
-            'practice': '🎲 Karma Alıştırma', // Merged into interleaved
+            'practice': '🔀 Karma Alıştırma', // Merged into interleaved
             'story': '📖 Hikaye',
             'test-out': '📝 Test-Out Sınavı',
             'chapter': '📚 Bölüm'
