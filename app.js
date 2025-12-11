@@ -1469,13 +1469,46 @@ class LearningSystem {
         
         // Conversation merged into contextual - no separate handling needed
         
+        // Update stats (for all modes including test-out)
+        if (isCorrect) {
+            this.sessionStats.correct++;
+            // Don't add XP for test-out mode (XP is given at the end)
+            if (this.currentMode !== 'test-out') {
+                this.addXP(10);
+                this.animateXP('+10 XP');
+            }
+        } else {
+            this.sessionStats.wrong++;
+            // Don't lose heart for test-out mode
+            if (this.currentMode !== 'test-out') {
+                this.trackWeakWord(this.currentQuestion.id_number);
+                this.loseHeart();
+                this.updateErrorAnalysis(this.currentQuestion);
+            }
+        }
+        
+        this.updateSessionStats();
+        
+        // Update daily progress (for all modes)
+        this.updateDailyProgress();
+        
         // Update test-out progress
         if (this.currentMode === 'test-out') {
-            this.testAnswers.push({
-                wordId: this.currentQuestion.id_number,
-                correct: isCorrect
-            });
-            this.testWordIndex++;
+            if (this.currentQuestion) {
+                this.testAnswers.push({
+                    wordId: this.currentQuestion.id_number,
+                    correct: isCorrect
+                });
+                this.testWordIndex++;
+                
+                // Auto-advance to next question after delay (test-out mode)
+                setTimeout(() => {
+                    if (this.currentMode === 'test-out') {
+                        this.nextTestOutQuestion();
+                    }
+                }, 1500);
+            }
+            return; // Don't show next button for test-out mode
         }
         
         // Update chapter progress
@@ -1495,21 +1528,6 @@ class LearningSystem {
                 this.renderChapters();
             }
         }
-        
-        // Update stats
-        if (isCorrect) {
-            this.sessionStats.correct++;
-            this.addXP(10);
-            this.animateXP('+10 XP');
-        } else {
-            this.sessionStats.wrong++;
-            this.trackWeakWord(this.currentQuestion.id_number);
-            this.loseHeart();
-            this.updateErrorAnalysis(this.currentQuestion);
-        }
-        
-        this.updateSessionStats();
-        this.updateDailyProgress();
         
         // Show next button (except for test-out which auto-advances)
         if (this.currentMode !== 'test-out') {
@@ -3001,6 +3019,12 @@ class LearningSystem {
             .sort(() => Math.random() - 0.5)
             .slice(0, test.questions);
         
+        // Edge case: Check if test words are available
+        if (!testWords || testWords.length === 0) {
+            this.showToast('⚠️ Bu seviye için yeterli kelime bulunamadı!', 'error');
+            return;
+        }
+        
         this.testWords = testWords;
         this.testWordIndex = 0;
         this.testAnswers = [];
@@ -3019,13 +3043,33 @@ class LearningSystem {
     }
 
     nextTestOutQuestion() {
+        // Edge case: Check if test words exist
+        if (!this.testWords || this.testWords.length === 0) {
+            this.showToast('⚠️ Test kelimeleri yüklenemedi!', 'error');
+            setTimeout(() => this.showDashboard(), 2000);
+            return;
+        }
+        
+        // Edge case: Check if test is actually completed (all questions answered)
         if (this.testWordIndex >= this.testWords.length) {
-            // Test completed
-            this.completeTestOut();
+            // Only complete if we actually answered questions
+            if (this.testAnswers && this.testAnswers.length > 0) {
+                this.completeTestOut();
+            } else {
+                // Test was never started properly, go back to dashboard
+                this.showToast('⚠️ Test başlatılamadı!', 'error');
+                setTimeout(() => this.showDashboard(), 2000);
+            }
             return;
         }
         
         const word = this.testWords[this.testWordIndex];
+        if (!word) {
+            this.showToast('⚠️ Soru yüklenemedi!', 'error');
+            setTimeout(() => this.showDashboard(), 2000);
+            return;
+        }
+        
         this.currentQuestion = word;
         this.renderTestOutQuestion(word, this.testWordIndex);
         this.updateSessionStats();
@@ -3092,6 +3136,20 @@ class LearningSystem {
     }
 
     completeTestOut() {
+        // Edge case: Check if test was actually started
+        if (!this.testStartTime || !this.testWords || this.testWords.length === 0) {
+            this.showToast('⚠️ Test düzgün başlatılamadı!', 'error');
+            setTimeout(() => this.showDashboard(), 2000);
+            return;
+        }
+        
+        // Edge case: Check if any questions were answered
+        if (!this.testAnswers || this.testAnswers.length === 0) {
+            this.showToast('⚠️ Hiç soru cevaplanmadı!', 'error');
+            setTimeout(() => this.showDashboard(), 2000);
+            return;
+        }
+        
         const totalTime = Math.floor((Date.now() - this.testStartTime) / 1000);
         const score = this.sessionStats.correct;
         const total = this.testWords.length;
