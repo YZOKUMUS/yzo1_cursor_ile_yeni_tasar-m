@@ -3011,7 +3011,7 @@ class LearningSystem {
         this.sessionStats = { correct: 0, wrong: 0 };
         
         // Get test words based on level
-        const testWords = this.words
+        let testWords = this.words
             .filter(w => {
                 const difficulty = Math.floor(w.word_diffuculty / 1.5);
                 return difficulty >= (test.level - 1) && difficulty < test.level + 2;
@@ -3019,9 +3019,23 @@ class LearningSystem {
             .sort(() => Math.random() - 0.5)
             .slice(0, test.questions);
         
-        // Edge case: Check if test words are available
+        // Edge case: If no words match the difficulty filter, use all words (for new users)
         if (!testWords || testWords.length === 0) {
-            this.showToast('⚠️ Bu seviye için yeterli kelime bulunamadı!', 'error');
+            console.log('No words found for difficulty filter, using all words');
+            testWords = [...this.words]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, test.questions);
+        }
+        
+        // Final check: If still no words, show error
+        if (!testWords || testWords.length === 0) {
+            this.showToast('⚠️ Kelime verisi yükleniyor, lütfen bekleyin...', 'error');
+            // Try to reload words
+            this.loadWords().then(() => {
+                if (this.words && this.words.length > 0) {
+                    this.startTestOut(testId);
+                }
+            });
             return;
         }
         
